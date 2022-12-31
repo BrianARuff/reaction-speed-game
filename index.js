@@ -16,7 +16,7 @@ let scoreIntervalID = null;
 let changeBoardColorIntervalID = null;
 let gameBoardID = null;
 let randomTickRate = null;
-let tickRate = 4;
+let tickRate = 16.67;
 
 function changeBoardColor() {
     score = 0;
