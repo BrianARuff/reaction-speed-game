@@ -1,0 +1,45 @@
+button {
+    font-size: 16px;
+    font-weight: bold;
+    height: 50px;
+    width: 300px;
+}
+
+#board {
+    display: flex;
+    flex-flow: column wrap;
+    justify-content: center;
+    align-items: center;
+    background: lightblue;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+#resetButton {
+    display: none;
+}
+
+#directions {
+    font-size: 16px;
+    font-weight: bold;
+    color: black;
+}
+
+#header {
+    font-size: 24px;
+    font-weight: bold;
+    color: black;
+}
+
+p {
+    font-size: 16px;
+    font-weight: bold;
+}
+
+h1 {
+    font-size: 24px;
+    font-weight: bold;
+}
