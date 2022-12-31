@@ -23,7 +23,6 @@ function changeBoardColor() {
     if (hasClickedGreen || hasNotClickedGreen) {
         clearTimeout(scoreIntervalID);
         clearTimeout(changeBoardColorIntervalID);
-        clearTimeout(gameBoardID);
     }
     if (gameStarted) {
         const randomColor = colors[Math.floor(Math.random() * colors.length)];
@@ -69,11 +68,12 @@ function startGameBoard(event) {
         const boardColor = board.style.backgroundColor;
         if (boardColor === 'green') {
             hasClickedGreen = true;
-            evalDiv.textContent = `Congrats! You clicked on the green color. Your reaction time is ${score}! ms`;
+            evalDiv.textContent = `Congrats! You clicked on the green color. Your reaction time is ${Math.round(score)}! ms`;
             evalDiv.style.color = 'lightred';
         } else {
             hasNotClickedGreen = true;
-            evalDiv.textContent = `You did not click green. Please try again. However, your reaction time from the last color to the one you clicked was ${score} ms!`;
+        clearTimeout(gameBoardID);
+        evalDiv.textContent = `You did not click green. Please try again. However, your reaction time from the last color to the one you clicked was ${Math.round(score)} ms!`;
             evalDiv.style.color = 'white';
         }
     }
