@@ -17,7 +17,7 @@ let hasNotClickedGreen = false;
 let scoreIntervalID = null;
 let changeBoardColorIntervalID = null;
 let gameBoardID = null;
-let tickRate = 16.67;
+let tickRate = 1;
 let scoreList = [];
 let genreatedColors = [];
 
@@ -70,7 +70,7 @@ function changeBoardColor() {
 
 function increaseScore() {
     if (!hasClickedGreen && !hasNotClickedGreen) {
-        score += tickRate;
+        score += (tickRate * 4);
         scoreIntervalID = setTimeout(increaseScore, tickRate);
     }
 }
