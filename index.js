@@ -16,13 +16,14 @@ let scoreIntervalID = null;
 let changeBoardColorIntervalID = null;
 let gameBoardID = null;
 let randomTickRate = null;
-let tickRate = 16.67;
+let tickRate = 10;
 
 function changeBoardColor() {
     score = 0;
     if (hasClickedGreen || hasNotClickedGreen) {
         clearTimeout(scoreIntervalID);
         clearTimeout(changeBoardColorIntervalID);
+        cancelAnimationFrame(gameBoardID);
     }
     if (gameStarted) {
         const randomColor = colors[Math.floor(Math.random() * colors.length)];
