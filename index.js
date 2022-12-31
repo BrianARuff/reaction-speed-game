@@ -17,7 +17,7 @@ let hasNotClickedGreen = false;
 let scoreIntervalID = null;
 let changeBoardColorIntervalID = null;
 let gameBoardID = null;
-let tickRate = 10;
+let tickRate = 16.67;
 let scoreList = [];
 let genreatedColors = [];
 
@@ -112,7 +112,7 @@ function clickedGameBoard(event) {
             if (scoreList.length < 5) {
                 showResetButton();
                 const scoreListItem = document.createElement('li');
-                scoreListItem.textContent = `${scoreList.length}: ${score} ms`;
+                scoreListItem.textContent = `${scoreList.length}: ${Math.round(score)} ms`;
                 scoreListDiv.appendChild(scoreListItem);
             }
 
@@ -120,7 +120,7 @@ function clickedGameBoard(event) {
             if (scoreList.length === 5) {
                 const averageScore = scoreList.reduce((a, b) => a + b) / scoreList.length;
                 const scoreListItem = document.createElement('li');
-                scoreListItem.textContent = `${scoreList.length}: ${score} ms`;
+                scoreListItem.textContent = `${scoreList.length}: ${Math.round(score)} ms`;
                 scoreListDiv.appendChild(scoreListItem);
                 averageScoreDiv.textContent = `Your average reaction time over the past five tries is ${Math.round(averageScore)} ms!`;
             } else {
@@ -129,6 +129,7 @@ function clickedGameBoard(event) {
 
             if (scoreList.length > 5) {
                 resetGame(event);
+                averageScoreDiv.textContent = '';
             }
         } else {
             hasNotClickedGreen = true;
@@ -144,7 +145,7 @@ function resetGame(event) {
 
     genreatedColors = [];
 
-    if (gameStarted && scoreList.length < 5) {
+    if (scoreList.length === 5) {
         scoreList = [];
         while (scoreListDiv.firstChild) {
             scoreListDiv.removeChild(scoreListDiv.firstChild);
