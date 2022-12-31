@@ -1,3 +1,4 @@
+// DOM nodes
 const startButton = document.querySelector('#startButton');
 const resetButton = document.querySelector('#resetButton');
 const board = document.querySelector('#board');
@@ -7,89 +8,87 @@ const directionsDiv = document.querySelector('#directions');
 const scoreListDiv = document.querySelector('#scoreList');
 const averageScoreDiv = document.querySelector('#averageScore');
 
-
+// app state variables
 const colors = ['red', 'green', 'blue'];
-
+const possibleTickRates = [1000, 1500, 2000, 2500];
 let score = 0;
 let gameStarted = false;
 let hasClickedGreen = false;
 let hasNotClickedGreen = false;
-let scoreIntervalID = null;
 let changeBoardColorIntervalID = null;
-let gameBoardID = null;
-let tickRate = 1;
 let scoreList = [];
 let genreatedColors = [];
+let startDate = null;
+let endDate = null;
+let count = 0;
+let randomTickRate = getRandomTickRate();
 
 function getRandomColor() {
     return colors[Math.floor(Math.random() * colors.length)];
 }
 
+function getRandomTickRate() {
+    return possibleTickRates[Math.floor(Math.random() * possibleTickRates.length)];
+}
+
 function changeBoardColor() {
-    score = 0;
-    let count = 0;
+    startDate = 0;
+    endDate = 0;
 
-    if (hasClickedGreen || hasNotClickedGreen) {
-        clearTimeout(scoreIntervalID);
-        clearTimeout(changeBoardColorIntervalID);
-    }
+    console.log('randomTickRate: ', randomTickRate)
+    
+    changeBoardColorIntervalID = setInterval(() => {
+        score = 0;
 
-    if (gameStarted) {
-        let randomColor = getRandomColor();
-
-        genreatedColors.push(randomColor);
-
-        // prevent first random color from being green
-        if (genreatedColors.length === 1 && randomColor === 'green') {
-            randomColor = getRandomColor();
+        if (hasClickedGreen || hasNotClickedGreen) {
+            clearInterval(changeBoardColorIntervalID);
         }
 
-        while (randomColor === board.style.backgroundColor) {
-            randomColor = getRandomColor();
+        if (gameStarted) {
+            let randomColor = getRandomColor();
+
+            genreatedColors.push(randomColor);
+
+            if (genreatedColors.length === 1 && randomColor === 'green') {
+                randomColor = getRandomColor();
+            }
+
+            while (randomColor === board.style.backgroundColor) {
+                randomColor = getRandomColor();
+            }
+
             count++;
-            if (count > 5) {
+
+            if (count > 4) {
                 randomColor = 'green';
-                count  = 0;
-                break;
+            }
+
+            genreatedColors.push(randomColor);
+            
+            board.style.backgroundColor = randomColor;
+            startDate = +new Date();
+            console.log('count: ', count)
+
+            if (randomColor === 'green') {
+                ding().play();
             }
         }
-        
-        board.style.backgroundColor = randomColor;
-        
-        if (randomColor === 'green') {
-            ding().play();
-        }
-        
-        const randomTickRate = Math.floor(Math.random() * 1000) + 1000;
-        
-        if (changeBoardColorIntervalID) clearTimeout(changeBoardColorIntervalID);
-        
-        changeBoardColorIntervalID = setTimeout(changeBoardColor, randomTickRate);
-    }
+    }, randomTickRate);
 }
 
-function increaseScore() {
-    if (!hasClickedGreen && !hasNotClickedGreen) {
-        score += (tickRate * 4);
-        scoreIntervalID = setTimeout(increaseScore, tickRate);
+function isInteractionTooEarly() {
+    if (!genreatedColors.length ) {
+        return true;
     }
+
+    return false;
 }
 
-function gameLoop() {
-    if (gameStarted) {
-        gameBoardID = setTimeout(gameLoop, tickRate);
-    }
-}
 
 function setUpGame(event) {
     event.stopImmediatePropagation();
-    score = 0;
-    hasClickedGreen = false;
-    hasNotClickedGreen = false;
     gameStarted = true;
-    gameLoop();
     changeBoardColor();
-    increaseScore();
     hideResetButton();
     startButton.style.display = 'none';
     headerDiv.style.display = 'none';
@@ -97,20 +96,29 @@ function setUpGame(event) {
 }
 
 function clickedGameBoard(event) {
+    if (isInteractionTooEarly()) return true;
+
     event.stopImmediatePropagation();
+
+    score = (+new Date() - startDate) - 4;
+
+    clearInterval(changeBoardColorIntervalID);
+
+
     if (gameStarted) {
-        showResetButton();
+
         gameStarted = false;
         const boardColor = board.style.backgroundColor;
         if (boardColor === 'green') {
             hasClickedGreen = true;
+            
             evalDiv.textContent = `Congrats! You clicked on the green color. Your reaction time is ${Math.round(score)}! ms`;
-            evalDiv.textContent = `Congrats! You clicked on the green color. Your reaction time is ${Math.round(score)}!`;
+            
             scoreList.push(score);
 
             // append score to score list if list is less than 5 items
             if (scoreList.length < 5) {
-                showResetButton();
+                showResetButton('Try again');
                 const scoreListItem = document.createElement('li');
                 scoreListItem.textContent = `${scoreList.length}: ${Math.round(score)} ms`;
                 scoreListDiv.appendChild(scoreListItem);
@@ -118,23 +126,23 @@ function clickedGameBoard(event) {
 
             // if score list is 5 items, calculate average score and display it
             if (scoreList.length === 5) {
+                showResetButton('Reset');
                 const averageScore = scoreList.reduce((a, b) => a + b) / scoreList.length;
                 const scoreListItem = document.createElement('li');
                 scoreListItem.textContent = `${scoreList.length}: ${Math.round(score)} ms`;
                 scoreListDiv.appendChild(scoreListItem);
                 averageScoreDiv.textContent = `Your average reaction time over the past five tries is ${Math.round(averageScore)} ms!`;
-            } else {
-                averageScoreDiv.textContent = '';
             }
 
+            // fail safe to reset game if score list is greater than 5 items
             if (scoreList.length > 5) {
                 resetGame(event);
-                averageScoreDiv.textContent = '';
             }
         } else {
+            // if not green color, reset game, show reset button with Try again text, and display evaluation text with error message
+            showResetButton('Try again');
             hasNotClickedGreen = true;
-            clearTimeout(gameBoardID);
-        evalDiv.textContent = `You did not click green. Please try again. However, your reaction time from the last color to the one you clicked was ${Math.round(score)} ms!`;
+            evalDiv.textContent = `You did not click green. Please try again. However, your reaction time from the last color to the one you clicked was ${Math.round(score)} ms!`;
             evalDiv.style.color = 'white';
         }
     }
@@ -145,6 +153,7 @@ function resetGame(event) {
 
     genreatedColors = [];
 
+    // if score list has 5 entries, reset score list, remove all li elements from score list div, and remove average score text from evaluation div
     if (scoreList.length === 5) {
         scoreList = [];
         while (scoreListDiv.firstChild) {
@@ -153,13 +162,27 @@ function resetGame(event) {
         averageScoreDiv.textContent = '';
     }
 
+    if (scoreList.length < 5) {
+        // change text on reset button to try again
+        resetButton.textContent = 'Try Again';
+    }
+
     // if start button is hidden, show it
     if (startButton.style.display === 'none') {
         startButton.style.display = 'block';
         hideResetButton();
     }
 
+    // after resetting game state
+    score = 0;
+    count = 0;
+    endDate = 0;
+    startDate = 0;
     gameStarted = false;
+    hasClickedGreen = false;
+    hasNotClickedGreen = false;
+
+    // reset board, buttons, and headers to default text state.
     evalDiv.textContent = '';
     headerDiv.style.display = 'block';
     directionsDiv.style.display = 'block';
@@ -167,15 +190,24 @@ function resetGame(event) {
 }
 
 startButton.addEventListener('mousedown', setUpGame);
-resetButton.addEventListener('mousedown', resetGame);
-board.addEventListener('mousedown', clickedGameBoard);
+startButton.addEventListener('touchstart', setUpGame);
 
-function showResetButton() {
+resetButton.addEventListener('mousedown', resetGame);
+resetButton.addEventListener('touchstart', resetGame);
+
+board.addEventListener('mousedown', clickedGameBoard);
+board.addEventListener('touchstart', clickedGameBoard);
+
+function showResetButton(text = '') {
     resetButton.style.display = 'block';
+
+    if (text) resetButton.textContent = text;
 }
 
-function hideResetButton() {
+function hideResetButton(text = '') {
     resetButton.style.display = 'none';
+
+    if (text) resetButton.textContent = text;
 }
 
 function ding() {
