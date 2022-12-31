@@ -19,6 +19,7 @@ let changeBoardColorIntervalID = null;
 let gameBoardID = null;
 let tickRate = 10;
 let scoreList = [];
+let genreateedColors = [];
 
 function getRandomColor() {
     return colors[Math.floor(Math.random() * colors.length)];
@@ -34,6 +35,14 @@ function changeBoardColor() {
 
     if (gameStarted) {
         let randomColor = getRandomColor();
+        if (genreateedColors.length === 0 && randomColor === 'green') {
+            randomColor = getRandomColor();
+        }
+        // make sure the same color is not generated twice in a row
+        while (genreateedColors.length > 0 && randomColor === genreateedColors[genreateedColors.length - 1]) {
+            console.log('new color generated')
+            randomColor = getRandomColor();
+        }
         board.style.backgroundColor = randomColor;
         const randomTickRate = Math.floor(Math.random() * 1000) + 1000;
         if (changeBoardColorIntervalID) clearTimeout(changeBoardColorIntervalID);
@@ -91,6 +100,7 @@ function clickedGameBoard(event) {
 
             // if score list is 5 items, calculate average score and display it
             if (scoreList.length === 5) {
+                genreateedColors = [];
                 const averageScore = scoreList.reduce((a, b) => a + b) / scoreList.length;
                 const scoreListItem = document.createElement('li');
                 scoreListItem.textContent = `${scoreList.length}: ${score} ms`;
@@ -99,6 +109,7 @@ function clickedGameBoard(event) {
             }
 
             if (scoreList.length > 5) {
+                genreateedColors = [];
                 resetGame(event);
             }
         } else {
