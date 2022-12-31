@@ -8,7 +8,7 @@ const scoreListDiv = document.querySelector('#scoreList');
 const averageScoreDiv = document.querySelector('#averageScore');
 
 
-const colors = ['red', 'green', 'blue', 'orange'];
+const colors = ['red', 'green', 'blue'];
 
 let score = 0;
 let gameStarted = false;
@@ -19,7 +19,7 @@ let changeBoardColorIntervalID = null;
 let gameBoardID = null;
 let tickRate = 10;
 let scoreList = [];
-let genreateedColors = [];
+let genreatedColors = [];
 
 function getRandomColor() {
     return colors[Math.floor(Math.random() * colors.length)];
@@ -27,6 +27,7 @@ function getRandomColor() {
 
 function changeBoardColor() {
     score = 0;
+    let count = 0;
 
     if (hasClickedGreen || hasNotClickedGreen) {
         clearTimeout(scoreIntervalID);
@@ -35,17 +36,34 @@ function changeBoardColor() {
 
     if (gameStarted) {
         let randomColor = getRandomColor();
-        if (genreateedColors.length === 0 && randomColor === 'green') {
+
+        genreatedColors.push(randomColor);
+
+        // prevent first random color from being green
+        if (genreatedColors.length === 1 && randomColor === 'green') {
             randomColor = getRandomColor();
         }
-        // make sure the same color is not generated twice in a row
-        while (genreateedColors.length > 0 && randomColor === genreateedColors[genreateedColors.length - 1]) {
-            console.log('new color generated')
+
+        while (randomColor === board.style.backgroundColor) {
             randomColor = getRandomColor();
+            count++;
+            if (count > 5) {
+                randomColor = 'green';
+                count  = 0;
+                break;
+            }
         }
+        
         board.style.backgroundColor = randomColor;
+        
+        if (randomColor === 'green') {
+            ding().play();
+        }
+        
         const randomTickRate = Math.floor(Math.random() * 1000) + 1000;
+        
         if (changeBoardColorIntervalID) clearTimeout(changeBoardColorIntervalID);
+        
         changeBoardColorIntervalID = setTimeout(changeBoardColor, randomTickRate);
     }
 }
@@ -100,16 +118,16 @@ function clickedGameBoard(event) {
 
             // if score list is 5 items, calculate average score and display it
             if (scoreList.length === 5) {
-                genreateedColors = [];
                 const averageScore = scoreList.reduce((a, b) => a + b) / scoreList.length;
                 const scoreListItem = document.createElement('li');
                 scoreListItem.textContent = `${scoreList.length}: ${score} ms`;
                 scoreListDiv.appendChild(scoreListItem);
                 averageScoreDiv.textContent = `Your average reaction time over the past five tries is ${Math.round(averageScore)} ms!`;
+            } else {
+                averageScoreDiv.textContent = '';
             }
 
             if (scoreList.length > 5) {
-                genreateedColors = [];
                 resetGame(event);
             }
         } else {
@@ -123,6 +141,8 @@ function clickedGameBoard(event) {
 
 function resetGame(event) {
     event.stopImmediatePropagation();
+
+    genreatedColors = [];
 
     if (gameStarted && scoreList.length < 5) {
         scoreList = [];
@@ -155,4 +175,11 @@ function showResetButton() {
 
 function hideResetButton() {
     resetButton.style.display = 'none';
+}
+
+function ding() {
+    const audioPlayer = document.createElement('audio');
+    audioPlayer.setAttribute('src', 'ding.mp3');
+    audioPlayer.setAttribute('autoplay', 'autoplay');
+    return audioPlayer;
 }
