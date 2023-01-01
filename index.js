@@ -116,7 +116,7 @@ function clickedGameBoard(event) {
 
     event.stopImmediatePropagation();
 
-    score = (+new Date() - startDate) - 4;
+    score = (+new Date() - startDate);
 
     clearInterval(changeBoardColorIntervalID);
 
