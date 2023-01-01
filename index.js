@@ -192,7 +192,7 @@ function resetGame(event) {
         toggleResetButton(false);
     }
 
-    // after resetting game state
+    // reset game state
     score = 0;
     count = 0;
     endDate = 0;
