@@ -128,7 +128,7 @@ function clickedGameBoard(event) {
         if (boardColor === 'green') {
             hasClickedGreen = true;
             
-            evalDiv.textContent = `Congrats! You clicked on the green color. Your reaction time is ${Math.round(score)}! ms`;
+            evalDiv.textContent = `Congrats! You clicked on the green color. Your reaction time is ${Math.round(score)} ms!`;
             
             scoreList.push([{date: moment().format('YYYY-MM-DD')}, {value: score}]);
 
