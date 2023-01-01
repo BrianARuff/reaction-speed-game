@@ -144,7 +144,7 @@ function clickedGameBoard(event) {
             // if score list is 5 items, calculate average score and display it
             if (scoreList.length === 5) {
                 toggleResetButton(true, 'Reset');
-                const averageScore = scoreList.reduce((a, b) => a + b) / scoreList.length;
+                const averageScore = scoreList.reduce((acc, curr) => acc + curr[1].value, 0) / scoreList.length;
                 const scoreListItem = document.createElement('li');
                 scoreListItem.textContent = `${scoreList.length}: ${Math.round(score)} ms`;
                 scoreListDiv.appendChild(scoreListItem);
@@ -163,7 +163,7 @@ function clickedGameBoard(event) {
             evalDiv.style.color = 'white';
         }
 
-        setupD3LineChart(scoreList);
+        // setupD3LineChart(scoreList);
     }
 }
 
