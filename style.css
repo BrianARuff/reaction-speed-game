@@ -24,6 +24,7 @@ button {
     height: 600px;
     width: calc(100% - 20px);
     padding: 20px;
+    cursor: pointer;
 }
 
 

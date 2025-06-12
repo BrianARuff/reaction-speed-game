@@ -9,19 +9,20 @@ const scoreListDiv = document.querySelector('#scoreList');
 const averageScoreDiv = document.querySelector('#averageScore');
 
 // app state variables
-const colors = ['red', 'green', 'blue'];
-const possibleTickRates = [1000, 1500, 2000, 2500];
+// Instead of cycling through random colors on a predictable interval, mimic
+// Human Benchmark's behavior by waiting a random amount of time before
+// switching to the target color.
+const minDelay = 2000; // 2 seconds
+const maxDelay = 5000; // 5 seconds
+let timeoutID = null;
 let score = 0;
+let waitingForGreen = false;
 let gameStarted = false;
 let hasClickedGreen = false;
 let hasNotClickedGreen = false;
-let changeBoardColorIntervalID = null;
 let scoreList = [];
-let generatedColors = [];
 let startTime = null;
 let endTime = null;
-let count = 0;
-let randomTickRate = getRandomTickRate();
 
 // D3 initialization
 // set the dimensions and margins of the graph
@@ -37,63 +38,27 @@ let randomTickRate = getRandomTickRate();
 // .attr("transform",
 //     "translate(" + margin.left + "," + margin.top + ")");
 
-function getRandomColor() {
-    return colors[Math.floor(Math.random() * colors.length)];
-}
+function scheduleGreen() {
+    // Ensure any previous timer is cleared
+    if (timeoutID) clearTimeout(timeoutID);
 
-function getRandomTickRate() {
-    return possibleTickRates[Math.floor(Math.random() * possibleTickRates.length)];
-}
-
-function changeBoardColor() {
+    score = 0;
     startTime = 0;
     endTime = 0;
-    
-    changeBoardColorIntervalID = setInterval(() => {
-        score = 0;
 
-        if (hasClickedGreen || hasNotClickedGreen) {
-            clearInterval(changeBoardColorIntervalID);
-        }
+    const delay = Math.floor(Math.random() * (maxDelay - minDelay + 1)) + minDelay;
+    waitingForGreen = true;
+    board.style.backgroundColor = 'red';
 
-        if (gameStarted) {
-            let randomColor = getRandomColor();
-
-            generatedColors.push(randomColor);
-
-            if (generatedColors.length === 1 && isBoardGreen()) {
-                randomColor = getRandomColor();
-            }
-
-            while (randomColor === board.style.backgroundColor) {
-                randomColor = getRandomColor();
-            }
-
-            count++;
-
-            if (count > 4) {
-                randomColor = 'green';
-            }
-
-            generatedColors.push(randomColor);
-            
-            board.style.backgroundColor = randomColor;
-            
+    timeoutID = setTimeout(() => {
+        board.style.backgroundColor = 'green';
+        // record the start time after the paint for better accuracy
+        requestAnimationFrame(() => {
             startTime = performance.now();
-
-            if (isBoardGreen()) {
-                ding().play();
-            }
-        }
-    }, randomTickRate);
-}
-
-function isInteractionTooEarly() {
-    if (!generatedColors.length ) {
-        return true;
-    }
-
-    return false;
+            waitingForGreen = false;
+            ding().play();
+        });
+    }, delay);
 }
 
 
@@ -104,74 +69,68 @@ function isBoardGreen() {
 function setUpGame(event) {
     event.stopImmediatePropagation();
     gameStarted = true;
-    changeBoardColor();
     toggleResetButton(false);
     toggleStartButton(false);
     toggleHeader(false);
     toggleDirections(false);
+    scheduleGreen();
 }
 
 function clickedGameBoard(event) {
-    if (isInteractionTooEarly()) return true;
-
     event.stopImmediatePropagation();
 
-    score = (performance.now() - startTime);
-    endTime = performance.now();
-
-    clearInterval(changeBoardColorIntervalID);
-
-
-    if (gameStarted) {
-
+    if (waitingForGreen) {
+        // clicked before green appeared
+        clearTimeout(timeoutID);
+        waitingForGreen = false;
         gameStarted = false;
-        const boardColor = board.style.backgroundColor;
-        if (boardColor === 'green') {
-            hasClickedGreen = true;
+        hasNotClickedGreen = true;
+        evalDiv.textContent = 'Too soon! Please try again.';
+        toggleResetButton(true);
+        board.style.backgroundColor = 'lightblue';
+        return;
+    }
+
+    if (gameStarted && isBoardGreen()) {
+        endTime = performance.now();
+        score = endTime - startTime;
+        gameStarted = false;
+        hasClickedGreen = true;
             
-            evalDiv.textContent = `Congrats! You clicked on the green color. Your reaction time is ${Math.round(score)} ms!`;
-            
-            scoreList.push([{date: moment().format('YYYY-MM-DD')}, {value: score}]);
+        evalDiv.textContent = `Congrats! You clicked on the green color. Your reaction time is ${Math.round(score)} ms!`;
 
-            // append score to score list if list is less than 5 items
-            if (scoreList.length < 5) {
-                toggleResetButton(true);
-                const scoreListItem = document.createElement('li');
-                scoreListItem.textContent = `${scoreList.length}: ${Math.round(score)} ms`;
-                scoreListDiv.appendChild(scoreListItem);
-            }
-            console.log(scoreList)
+        scoreList.push([{date: moment().format('YYYY-MM-DD')}, {value: score}]);
 
-            // if score list is 5 items, calculate average score and display it
-            if (scoreList.length === 5) {
-                toggleResetButton(true, 'Reset');
-                const averageScore = scoreList.reduce((acc, curr) => acc + curr[1].value, 0) / scoreList.length;
-                const scoreListItem = document.createElement('li');
-                scoreListItem.textContent = `${scoreList.length}: ${Math.round(score)} ms`;
-                scoreListDiv.appendChild(scoreListItem);
-                averageScoreDiv.textContent = `Your average reaction time over the past five tries is ${Math.round(averageScore)} ms!`;
-            }
-
-            // fail safe to reset game if score list is greater than 5 items
-            if (scoreList.length > 5) {
-                resetGame(event);
-            }
-        } else {
-            // if not green color, reset game, show reset button with Try again text, and display evaluation text with error message
+        // append score to score list if list is less than 5 items
+        if (scoreList.length < 5) {
             toggleResetButton(true);
-            hasNotClickedGreen = true;
-            evalDiv.textContent = `You did not click green. Please try again. However, your reaction time from the last color to the one you clicked was ${Math.round(score)} ms!`;
-            evalDiv.style.color = 'white';
+            const scoreListItem = document.createElement('li');
+            scoreListItem.textContent = `${scoreList.length}: ${Math.round(score)} ms`;
+            scoreListDiv.appendChild(scoreListItem);
+        }
+        console.log(scoreList)
+
+        // if score list is 5 items, calculate average score and display it
+        if (scoreList.length === 5) {
+            toggleResetButton(true, 'Reset');
+            const averageScore = scoreList.reduce((acc, curr) => acc + curr[1].value, 0) / scoreList.length;
+            const scoreListItem = document.createElement('li');
+            scoreListItem.textContent = `${scoreList.length}: ${Math.round(score)} ms`;
+            scoreListDiv.appendChild(scoreListItem);
+            averageScoreDiv.textContent = `Your average reaction time over the past five tries is ${Math.round(averageScore)} ms!`;
         }
 
-        // setupD3LineChart(scoreList);
+        // fail safe to reset game if score list is greater than 5 items
+        if (scoreList.length > 5) {
+            resetGame(event);
+        }
+        toggleResetButton(true);
     }
 }
 
 function resetGame(event) {
     event.stopImmediatePropagation();
 
-    generatedColors = [];
 
     // if score list has 5 entries, reset score list, remove all li elements from score list div, and remove average score text from evaluation div
     if (scoreList.length === 5) {
@@ -194,8 +153,12 @@ function resetGame(event) {
     }
 
     // reset game state
+    if (timeoutID) {
+        clearTimeout(timeoutID);
+        timeoutID = null;
+    }
+    waitingForGreen = false;
     score = 0;
-    count = 0;
     endTime = 0;
     startTime = 0;
     gameStarted = false;
