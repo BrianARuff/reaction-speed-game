@@ -18,8 +18,8 @@ let hasNotClickedGreen = false;
 let changeBoardColorIntervalID = null;
 let scoreList = [];
 let genreatedColors = [];
-let startDate = null;
-let endDate = null;
+let startTime = null;
+let endTime = null;
 let count = 0;
 let randomTickRate = getRandomTickRate();
 
@@ -46,8 +46,8 @@ function getRandomTickRate() {
 }
 
 function changeBoardColor() {
-    startDate = 0;
-    endDate = 0;
+    startTime = 0;
+    endTime = 0;
     
     changeBoardColorIntervalID = setInterval(() => {
         score = 0;
@@ -79,7 +79,7 @@ function changeBoardColor() {
             
             board.style.backgroundColor = randomColor;
             
-            startDate = +new Date();
+            startTime = performance.now();
 
             if (isBoardGreen()) {
                 ding().play();
@@ -116,7 +116,8 @@ function clickedGameBoard(event) {
 
     event.stopImmediatePropagation();
 
-    score = (+new Date() - startDate);
+    score = (performance.now() - startTime);
+    endTime = performance.now();
 
     clearInterval(changeBoardColorIntervalID);
 
@@ -195,8 +196,8 @@ function resetGame(event) {
     // reset game state
     score = 0;
     count = 0;
-    endDate = 0;
-    startDate = 0;
+    endTime = 0;
+    startTime = 0;
     gameStarted = false;
     hasClickedGreen = false;
     hasNotClickedGreen = false;
