@@ -16,12 +16,12 @@
 
 <h2><u>Potential Future Update Notes</u></h2>
 <ul>
-    <li>Line chart of attemtps</li>
+    <li>Line chart of attempts</li>
     <li>User accounts - Doing this allows for many more features like tracking reaction speed over a longer period of time.</li>
 </ul>
 
 <h2><u>The Algorithm Used to get Reaction Speed</u></h2>
-<p>Your score should be accurate because the algorithm is that every time a new color is generated, a start date object is created, and when you click the board, an end date object is made, and then I simply get the difference between the two dates and display it in milliseconds. This works much better than relying on setInterval/setTimeout/requestAnimationFrame as those methods are not 100% consistent.</p>
+<p>Your score should be accurate because the algorithm is that every time a new color is generated, a start time is recorded using the browser's <code>performance.now()</code> API, and when you click the board we capture another timestamp. The difference between these high&#x2011;resolution times is displayed in milliseconds, providing more precise results than the older <code>Date</code> approach.</p>
 
 <h2><u>How this App Looks</u></h2>
 <p>This app may look "ugly" to some as I'm not a designer, but this isn't about making it look good, it's about the core functionality.</p>

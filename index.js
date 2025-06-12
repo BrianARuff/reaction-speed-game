@@ -17,9 +17,9 @@ let hasClickedGreen = false;
 let hasNotClickedGreen = false;
 let changeBoardColorIntervalID = null;
 let scoreList = [];
-let genreatedColors = [];
-let startDate = null;
-let endDate = null;
+let generatedColors = [];
+let startTime = null;
+let endTime = null;
 let count = 0;
 let randomTickRate = getRandomTickRate();
 
@@ -46,8 +46,8 @@ function getRandomTickRate() {
 }
 
 function changeBoardColor() {
-    startDate = 0;
-    endDate = 0;
+    startTime = 0;
+    endTime = 0;
     
     changeBoardColorIntervalID = setInterval(() => {
         score = 0;
@@ -59,9 +59,9 @@ function changeBoardColor() {
         if (gameStarted) {
             let randomColor = getRandomColor();
 
-            genreatedColors.push(randomColor);
+            generatedColors.push(randomColor);
 
-            if (genreatedColors.length === 1 && isBoardGreen()) {
+            if (generatedColors.length === 1 && isBoardGreen()) {
                 randomColor = getRandomColor();
             }
 
@@ -75,11 +75,11 @@ function changeBoardColor() {
                 randomColor = 'green';
             }
 
-            genreatedColors.push(randomColor);
+            generatedColors.push(randomColor);
             
             board.style.backgroundColor = randomColor;
             
-            startDate = +new Date();
+            startTime = performance.now();
 
             if (isBoardGreen()) {
                 ding().play();
@@ -89,7 +89,7 @@ function changeBoardColor() {
 }
 
 function isInteractionTooEarly() {
-    if (!genreatedColors.length ) {
+    if (!generatedColors.length ) {
         return true;
     }
 
@@ -116,7 +116,8 @@ function clickedGameBoard(event) {
 
     event.stopImmediatePropagation();
 
-    score = (+new Date() - startDate);
+    score = (performance.now() - startTime);
+    endTime = performance.now();
 
     clearInterval(changeBoardColorIntervalID);
 
@@ -170,7 +171,7 @@ function clickedGameBoard(event) {
 function resetGame(event) {
     event.stopImmediatePropagation();
 
-    genreatedColors = [];
+    generatedColors = [];
 
     // if score list has 5 entries, reset score list, remove all li elements from score list div, and remove average score text from evaluation div
     if (scoreList.length === 5) {
@@ -195,8 +196,8 @@ function resetGame(event) {
     // reset game state
     score = 0;
     count = 0;
-    endDate = 0;
-    startDate = 0;
+    endTime = 0;
+    startTime = 0;
     gameStarted = false;
     hasClickedGreen = false;
     hasNotClickedGreen = false;
