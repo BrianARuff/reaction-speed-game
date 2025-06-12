@@ -17,7 +17,7 @@ let hasClickedGreen = false;
 let hasNotClickedGreen = false;
 let changeBoardColorIntervalID = null;
 let scoreList = [];
-let genreatedColors = [];
+let generatedColors = [];
 let startTime = null;
 let endTime = null;
 let count = 0;
@@ -59,9 +59,9 @@ function changeBoardColor() {
         if (gameStarted) {
             let randomColor = getRandomColor();
 
-            genreatedColors.push(randomColor);
+            generatedColors.push(randomColor);
 
-            if (genreatedColors.length === 1 && isBoardGreen()) {
+            if (generatedColors.length === 1 && isBoardGreen()) {
                 randomColor = getRandomColor();
             }
 
@@ -75,7 +75,7 @@ function changeBoardColor() {
                 randomColor = 'green';
             }
 
-            genreatedColors.push(randomColor);
+            generatedColors.push(randomColor);
             
             board.style.backgroundColor = randomColor;
             
@@ -89,7 +89,7 @@ function changeBoardColor() {
 }
 
 function isInteractionTooEarly() {
-    if (!genreatedColors.length ) {
+    if (!generatedColors.length ) {
         return true;
     }
 
@@ -171,7 +171,7 @@ function clickedGameBoard(event) {
 function resetGame(event) {
     event.stopImmediatePropagation();
 
-    genreatedColors = [];
+    generatedColors = [];
 
     // if score list has 5 entries, reset score list, remove all li elements from score list div, and remove average score text from evaluation div
     if (scoreList.length === 5) {

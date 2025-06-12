@@ -16,7 +16,7 @@
 
 <h2><u>Potential Future Update Notes</u></h2>
 <ul>
-    <li>Line chart of attemtps</li>
+    <li>Line chart of attempts</li>
     <li>User accounts - Doing this allows for many more features like tracking reaction speed over a longer period of time.</li>
 </ul>
 
